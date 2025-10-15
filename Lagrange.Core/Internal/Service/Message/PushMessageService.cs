@@ -20,11 +20,24 @@ internal class PushMessageService : BaseService<PushMessageEvent>
     protected override bool Parse(Span<byte> input, BotKeystore keystore, BotAppInfo appInfo, BotDeviceInfo device,
         out PushMessageEvent output, out List<ProtocolEvent>? extraEvents)
     {
-        var message = Serializer.Deserialize<PushMsg>(input);
+        PushMsg? message;
+        try 
+        {
+            message = Serializer.Deserialize<PushMsg>(input);
+        }
+        catch (ProtoException ex) when (ex.InnerException is OverflowException)
+        {
+            // 当出现protobuf溢出时，无法处理消息
+            output = null!;
+            extraEvents = null;
+            return false;
+        }
+        
         var packetType = (PkgType)message.Message.ContentHead.Type;
 
         output = null!;
         extraEvents = new List<ProtocolEvent>();
+
         switch (packetType)
         {
             case PkgType.PrivateMessage or PkgType.GroupMessage or PkgType.TempMessage or PkgType.PrivateRecordMessage:
@@ -159,14 +172,32 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                     }
                     case Event0x2DCSubType16Field13.GroupReactionNotice:
                     {
-                        uint group = msgBody.GroupUin;
-                        string uid = msgBody.Reaction.Data.Data.Data.OperatorUid;
-                        uint type = msgBody.Reaction.Data.Data.Data.Type;
-                        uint sequence = msgBody.Reaction.Data.Data.Target.Sequence;
-                        string code = msgBody.Reaction.Data.Data.Data.Code;
-                        uint count = msgBody.Reaction.Data.Data.Data.Count;
-                        var groupRecallEvent = GroupSysReactionEvent.Result(group, sequence, uid, type == 1, code, count);
-                        extraEvents.Add(groupRecallEvent);
+                        try
+                        {
+                            uint group = msgBody.GroupUin;
+                            string uid = msgBody.Reaction.Data.Data.Data.OperatorUid;
+                            uint type = msgBody.Reaction.Data.Data.Data.Type;
+                            uint sequence = msgBody.Reaction.Data.Data.Target.Sequence;
+                            string code = msgBody.Reaction.Data.Data.Data.Code;
+                            uint count = msgBody.Reaction.Data.Data.Data.Count;
+                            var groupRecallEvent = GroupSysReactionEvent.Result(group, sequence, uid, type == 1, code, count);
+                            extraEvents.Add(groupRecallEvent);
+                        }
+                        catch (OverflowException)
+                        {
+                            // 降级处理：只使用我们能够安全获取的信息
+                            uint group = msgBody.GroupUin;
+                            string uid = msgBody.OperatorUid; // 使用外层的OperatorUid作为后备
+                            var fallbackEvent = GroupSysReactionEvent.Result(group, 0, uid, true, "unknown", 0);
+                            extraEvents.Add(fallbackEvent);
+                        }
+                        catch (Exception)
+                        {
+                            // 其他异常也尝试降级处理
+                            uint group = msgBody.GroupUin;
+                            var fallbackEvent = GroupSysReactionEvent.Result(group, 0, "", true, "error", 0);
+                            extraEvents.Add(fallbackEvent);
+                        }
                         break;
                     }
                 }
@@ -378,6 +409,7 @@ internal class PushMessageService : BaseService<PushMessageEvent>
             }
         }
     }
+
 
     private enum PkgType
     {
