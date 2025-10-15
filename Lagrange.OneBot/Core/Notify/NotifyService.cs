@@ -231,8 +231,8 @@ public sealed class NotifyService(BotContext bot, ILogger<NotifyService> logger,
 
             var id = realm.Do(realm => realm.All<MessageRecord>()
                 .FirstOrDefault(record => record.TypeInt == (int)MessageType.Group
-                    && record.ToUinLong == @event.TargetGroupUin
-                    && record.SequenceLong == @event.TargetSequence)?
+                    && record.ToUinLong == (long)@event.TargetGroupUin
+                    && record.SequenceLong == (long)@event.TargetSequence)?
                 .Id);
 
             if (id == null)
