@@ -5,16 +5,16 @@ on:
     branches:
       - master
     paths:
-      - "Lagrange.Core/**"
-      - "Lagrange.OneBot/**"
+      # - "Lagrange.Core/**"
+      # - "Lagrange.OneBot/**"
       - "Lagrange.Core.sln"
       - "LICENSE"
   pull_request:
     branches:
       - master
     paths:
-      - "Lagrange.Core/**"
-      - "Lagrange.OneBot/**"
+      # - "Lagrange.Core/**"
+      # - "Lagrange.OneBot/**"
       - "Lagrange.Core.sln"
       - "LICENSE"
   workflow_dispatch:

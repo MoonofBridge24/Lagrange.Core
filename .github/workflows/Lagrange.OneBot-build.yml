@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - Uint64
     paths:
       - "Lagrange.Core/**"
       - "Lagrange.OneBot/**"

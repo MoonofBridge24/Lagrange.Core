@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - "Lagrange.Core/**"
+      # - "Lagrange.Core/**"
       - "Lagrange.Core.sln"
       - "LICENSE"
       - "README.md"

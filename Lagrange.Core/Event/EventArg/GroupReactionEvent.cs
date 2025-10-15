@@ -1,20 +1,20 @@
-﻿namespace Lagrange.Core.Event.EventArg;
+namespace Lagrange.Core.Event.EventArg;
 
 public class GroupReactionEvent : EventBase
 {
-    public uint TargetGroupUin { get; }
+    public ulong TargetGroupUin { get; }
 
-    public uint TargetSequence { get; }
+    public ulong TargetSequence { get; }
 
-    public uint OperatorUin { get; }
+    public ulong OperatorUin { get; }
 
     public bool IsAdd { get; }
 
     public string Code { get; }
 
-    public uint Count { get; }
+    public ulong Count { get; }
 
-    public GroupReactionEvent(uint targetGroupUin, uint targetSequence, uint operatorUin, bool isAdd, string code, uint count)
+    public GroupReactionEvent(ulong targetGroupUin, ulong targetSequence, ulong operatorUin, bool isAdd, string code, ulong count)
     {
         TargetGroupUin = targetGroupUin;
         TargetSequence = targetSequence;

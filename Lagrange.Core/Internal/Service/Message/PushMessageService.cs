@@ -159,12 +159,12 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                     }
                     case Event0x2DCSubType16Field13.GroupReactionNotice:
                     {
-                        uint group = msgBody.GroupUin;
+                        ulong group = msgBody.GroupUin;
                         string uid = msgBody.Reaction.Data.Data.Data.OperatorUid;
-                        uint type = msgBody.Reaction.Data.Data.Data.Type;
-                        uint sequence = msgBody.Reaction.Data.Data.Target.Sequence;
+                        ulong type = msgBody.Reaction.Data.Data.Data.Type;
+                        ulong sequence = msgBody.Reaction.Data.Data.Target.Sequence;
                         string code = msgBody.Reaction.Data.Data.Data.Code;
-                        uint count = msgBody.Reaction.Data.Data.Data.Count;
+                        ulong count = msgBody.Reaction.Data.Data.Data.Count;
                         var groupRecallEvent = GroupSysReactionEvent.Result(group, sequence, uid, type == 1, code, count);
                         extraEvents.Add(groupRecallEvent);
                         break;

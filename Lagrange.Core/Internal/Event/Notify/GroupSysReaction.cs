@@ -2,9 +2,9 @@ namespace Lagrange.Core.Internal.Event.Notify;
 
 internal class GroupSysReactionEvent : ProtocolEvent
 {
-    public uint TargetGroupUin { get; }
+    public ulong TargetGroupUin { get; }
 
-    public uint TargetSequence { get; }
+    public ulong TargetSequence { get; }
 
     public string OperatorUid { get; }
 
@@ -12,9 +12,9 @@ internal class GroupSysReactionEvent : ProtocolEvent
 
     public string Code { get; }
 
-    public uint Count { get; }
+    public ulong Count { get; }
 
-    private GroupSysReactionEvent(uint targetGroupUin, uint targetSequence, string operatorUid, bool isAdd, string code,uint count) : base(0)
+    private GroupSysReactionEvent(ulong targetGroupUin, ulong targetSequence, string operatorUid, bool isAdd, string code, ulong count) : base(0)
     {
         TargetGroupUin = targetGroupUin;
         TargetSequence = targetSequence;
@@ -24,6 +24,6 @@ internal class GroupSysReactionEvent : ProtocolEvent
         Count = count;
     }
 
-    public static GroupSysReactionEvent Result(uint groupUin, uint targetSequence, string operatorUid, bool isAdd, string code, uint count)
+    public static GroupSysReactionEvent Result(ulong groupUin, ulong targetSequence, string operatorUid, bool isAdd, string code, ulong count)
         => new(groupUin, targetSequence, operatorUid, isAdd, code, count);
 }
