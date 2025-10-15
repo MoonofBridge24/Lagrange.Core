@@ -32,12 +32,18 @@ internal class PushMessageService : BaseService<PushMessageEvent>
             extraEvents = null;
             return false;
         }
+        catch (OverflowException)
+        {
+            // 直接捕获溢出异常
+            output = null!;
+            extraEvents = null;
+            return false;
+        }
         
         var packetType = (PkgType)message.Message.ContentHead.Type;
 
         output = null!;
         extraEvents = new List<ProtocolEvent>();
-
         switch (packetType)
         {
             case PkgType.PrivateMessage or PkgType.GroupMessage or PkgType.TempMessage or PkgType.PrivateRecordMessage:
@@ -151,7 +157,25 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 _ = packet.ReadUint();  // group uin
                 _ = packet.ReadByte();  // unknown byte
                 var proto = packet.ReadBytes(Prefix.Uint16 | Prefix.LengthOnly); // proto length error
-                var msgBody = Serializer.Deserialize<NotifyMessageBody>(proto.AsSpan());
+                
+                NotifyMessageBody? msgBody = null;
+                try
+                {
+                    msgBody = Serializer.Deserialize<NotifyMessageBody>(proto.AsSpan());
+                }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+
+                if (msgBody == null) break;
+
                 switch ((Event0x2DCSubType16Field13)(msgBody.Field13 ?? 0))
                 {
                     case Event0x2DCSubType16Field13.GroupMemberSpecialTitleNotice:
@@ -209,8 +233,26 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 _ = packet.ReadUint();  // group uin
                 _ = packet.ReadByte();  // unknown byte
                 var proto = packet.ReadBytes(Prefix.Uint16 | Prefix.LengthOnly);
-                var recall = Serializer.Deserialize<NotifyMessageBody>(proto.AsSpan());
-                var meta = recall.Recall.RecallMessages[0];
+                
+                NotifyMessageBody? recall = null;
+                try
+                {
+                    recall = Serializer.Deserialize<NotifyMessageBody>(proto.AsSpan());
+                }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
+                if (recall?.Recall?.RecallMessages is not { } messages || messages.Count == 0) break;
+                
+                var meta = messages[0];
                 var groupRecallEvent = GroupSysRecallEvent.Result(
                     recall.GroupUin,
                     meta.AuthorUid,
@@ -225,7 +267,24 @@ internal class PushMessageService : BaseService<PushMessageEvent>
             }
             case Event0x2DCSubType.GroupMuteNotice when msg.Message.Body?.MsgContent is { } content:
             {
-                var mute = Serializer.Deserialize<GroupMute>(content.AsSpan());
+                GroupMute? mute = null;
+                try
+                {
+                    mute = Serializer.Deserialize<GroupMute>(content.AsSpan());
+                }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
+                if (mute?.Data?.State == null) break;
+                
                 if (mute.Data.State.TargetUid == null)
                 {
                     var groupMuteEvent = GroupSysMuteEvent.Result(mute.GroupUin, mute.OperatorUid, mute.Data.State.Duration != 0);
@@ -244,7 +303,24 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 _ = packet.ReadUint();  // group uin
                 _ = packet.ReadByte();  // unknown byte
                 var proto = packet.ReadBytes(Prefix.Uint16 | Prefix.LengthOnly);
-                var greytip = Serializer.Deserialize<NotifyMessageBody>(proto.AsSpan());
+                
+                NotifyMessageBody? greytip = null;
+                try
+                {
+                    greytip = Serializer.Deserialize<NotifyMessageBody>(proto.AsSpan());
+                }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
+                if (greytip == null) break;
 
                 if (greytip.Type == 27) // essence
                 {
@@ -274,8 +350,25 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 uint groupUin = packet.ReadUint();  // group uin
                 _ = packet.ReadByte();  // unknown byte
                 var proto = packet.ReadBytes(Prefix.Uint16 | Prefix.LengthOnly);
-                var greyTip = Serializer.Deserialize<NotifyMessageBody>(proto.AsSpan());
-
+                
+                NotifyMessageBody? greyTip = null;
+                try
+                {
+                    greyTip = Serializer.Deserialize<NotifyMessageBody>(proto.AsSpan());
+                }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
+                if (greyTip?.GeneralGrayTip?.MsgTemplParam == null) break;
+                
                 var templates = greyTip.GeneralGrayTip.MsgTemplParam.ToDictionary(x => x.Name, x => x.Value);
 
                 if (!templates.TryGetValue("action_str", out var actionStr) && !templates.TryGetValue("alt_str1", out actionStr))
@@ -314,29 +407,73 @@ internal class PushMessageService : BaseService<PushMessageEvent>
         {
             case Event0x210SubType.FriendRequestNotice when msg.Message.Body?.MsgContent is { } content:
             {
-                if (Serializer.Deserialize<FriendRequest>(content.AsSpan()).Info is { } info)
+                FriendRequest? request = null;
+                try
                 {
-                    var friendEvent = FriendSysRequestEvent.Result(msg.Message.ResponseHead.FromUin, info.SourceUid, info.Message, info.Source ?? info.NewSource);
-                    extraEvents.Add(friendEvent);
+                    request = Serializer.Deserialize<FriendRequest>(content.AsSpan());
                 }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
+                if (request?.Info == null) break;
+                
+                var friendEvent = FriendSysRequestEvent.Result(msg.Message.ResponseHead.FromUin, request.Info.SourceUid, request.Info.Message, request.Info.Source ?? request.Info.NewSource);
+                extraEvents.Add(friendEvent);
                 break;
             }
             case Event0x210SubType.GroupMemberEnterNotice when msg.Message.Body?.MsgContent is { } content:
             {
-                var info = Serializer.Deserialize<GroupMemberEnter>(content.AsSpan());
-                if (info is { Body.Info.Detail: { Style: { } style } detail })
+                GroupMemberEnter? info = null;
+                try
                 {
-                    var @event = GroupSysMemberEnterEvent.Result(detail.GroupId, detail.GroupMemberUin, style.StyleId);
-                    extraEvents.Add(@event);
+                    info = Serializer.Deserialize<GroupMemberEnter>(content.AsSpan());
                 }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
+                if (info is not { Body.Info.Detail: { Style: { } style } detail }) break;
+                
+                var @event = GroupSysMemberEnterEvent.Result(detail.GroupId, detail.GroupMemberUin, style.StyleId);
+                extraEvents.Add(@event);
                 break;
             }
             case Event0x210SubType.FriendDeleteOrPinChangedNotice when msg.Message.Body?.MsgContent is { } content: // Stupid TX
             {
-                var info = Serializer.Deserialize<FriendDeleteOrPinChanged>(content.AsSpan());
+                FriendDeleteOrPinChanged? info = null;
+                try
+                {
+                    info = Serializer.Deserialize<FriendDeleteOrPinChanged>(content.AsSpan());
+                }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
                 // if (info.Body.Data.Type == 5 && info.Body.Data.FriendDelete != null) // Friend Delete
                 // 0A8D010A4008AFB39FF80A1218755F54305768425A6368695A684555496253786F6F63474128AFB39FF80A3218755F54305768425A6368695A684555496253786F6F634741122108900410271827209092D9C10228F2C00330809096AF06609092D9C182808080021A260A0012220A2008001005721A0A18755F597831586B5A4E4E656E4E3141356A53423361576667
-                if (info.Body.Type == 7 && info.Body.PinChanged is { } data)
+                if (info?.Body?.Type == 7 && info.Body.PinChanged is { } data)
                 {
                     var @event = SysPinChangedEvent.Result(
                         data.Body.Uid,
@@ -349,7 +486,24 @@ internal class PushMessageService : BaseService<PushMessageEvent>
             }
             case Event0x210SubType.FriendRecallNotice when msg.Message.Body?.MsgContent is { } content:
             {
-                var recall = Serializer.Deserialize<FriendRecall>(content.AsSpan());
+                FriendRecall? recall = null;
+                try
+                {
+                    recall = Serializer.Deserialize<FriendRecall>(content.AsSpan());
+                }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
+                if (recall?.Info == null) break;
+                
                 var recallEvent = FriendSysRecallEvent.Result(
                     recall.Info.FromUid,
                     recall.Info.ClientSequence,
@@ -372,7 +526,24 @@ internal class PushMessageService : BaseService<PushMessageEvent>
             }
             case Event0x210SubType.FriendPokeNotice when msg.Message.Body?.MsgContent is { } content:
             {
-                var greyTip = Serializer.Deserialize<GeneralGrayTipInfo>(content.AsSpan());
+                GeneralGrayTipInfo? greyTip = null;
+                try
+                {
+                    greyTip = Serializer.Deserialize<GeneralGrayTipInfo>(content.AsSpan());
+                }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
+                if (greyTip?.MsgTemplParam == null) break;
+                
                 var templates = greyTip.MsgTemplParam.ToDictionary(x => x.Name, x => x.Value);
 
                 if (!templates.TryGetValue("action_str", out var actionStr) && !templates.TryGetValue("alt_str1", out actionStr))
@@ -399,7 +570,24 @@ internal class PushMessageService : BaseService<PushMessageEvent>
             }
             case Event0x210SubType.FriendRecallPoke when msg.Message.Body?.MsgContent is { } content:
             {
-                var recall = Serializer.Deserialize<FriendRecallPokeInfo>(content.AsSpan());
+                FriendRecallPokeInfo? recall = null;
+                try
+                {
+                    recall = Serializer.Deserialize<FriendRecallPokeInfo>(content.AsSpan());
+                }
+                catch (OverflowException)
+                {
+                    // 如果反序列化失败，跳过处理
+                    break;
+                }
+                catch (ProtoException ex) when (ex.InnerException is OverflowException)
+                {
+                    // 捕获ProtoException内部的溢出异常
+                    break;
+                }
+                
+                if (recall == null) break;
+                
                 extraEvents.Add(FriendSysRecallPokeEvent.Result(recall.PeerUid, recall.OperatorUid, recall.TipsSeqId));
                 break;
             }
@@ -409,7 +597,6 @@ internal class PushMessageService : BaseService<PushMessageEvent>
             }
         }
     }
-
 
     private enum PkgType
     {
