@@ -423,8 +423,8 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                         break;
                     case 5:
                         {
-                            int length = (int)reader.ReadUInt32();
-                            byte[] buffer = reader.ReadBytes(length);
+                            var length = (int)reader.ReadUInt32();
+                            var buffer = reader.ReadBytes(length);
                             msgBody.EventParam = buffer;
                             break;
                         }
@@ -456,36 +456,36 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                             {
                                 case 11:
                                     {
-                                        int length = (int)reader.ReadUInt32();
-                                        byte[] buffer = reader.ReadBytes(length);
+                                        var length = (int)reader.ReadUInt32();
+                                        var buffer = reader.ReadBytes(length);
                                         msgBody.Recall = Serializer.Deserialize<GroupRecall>(buffer.AsSpan());
                                         break;
                                     }
                                 case 26:
                                     {
-                                        int length = (int)reader.ReadUInt32();
-                                        byte[] buffer = reader.ReadBytes(length);
+                                        var length = (int)reader.ReadUInt32();
+                                        var buffer = reader.ReadBytes(length);
                                         msgBody.GeneralGrayTip = Serializer.Deserialize<GeneralGrayTipInfo>(buffer.AsSpan());
                                         break;
                                     }
                                 case 33:
                                     {
-                                        int length = (int)reader.ReadUInt32();
-                                        byte[] buffer = reader.ReadBytes(length);
+                                        var length = (int)reader.ReadUInt32();
+                                        var buffer = reader.ReadBytes(length);
                                         msgBody.EssenceMessage = Serializer.Deserialize<EssenceMessage>(buffer.AsSpan());
                                         break;
                                     }
                                 case 40:
                                     {
-                                        int length = (int)reader.ReadUInt32();
-                                        byte[] buffer = reader.ReadBytes(length);
+                                        var length = (int)reader.ReadUInt32();
+                                        var buffer = reader.ReadBytes(length);
                                         msgBody.GroupRecallPoke = Serializer.Deserialize<GroupRecallPoke>(buffer.AsSpan());
                                         break;
                                     }
                                 case 44:
                                     {
-                                        int length = (int)reader.ReadUInt32();
-                                        byte[] buffer = reader.ReadBytes(length);
+                                        var length = (int)reader.ReadUInt32();
+                                        var buffer = reader.ReadBytes(length);
                                         msgBody.Reaction = Serializer.Deserialize<GroupReactionData0>(buffer.AsSpan());
                                         break;
                                     }
