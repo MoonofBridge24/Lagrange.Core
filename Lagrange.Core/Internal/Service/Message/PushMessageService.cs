@@ -165,13 +165,13 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 }
                 catch (OverflowException)
                 {
-                    // 如果反序列化失败，尝试使用容错方式解析
-                    msgBody = ParseNotifyMessageBodyWithFallback(proto.AsSpan());
+                    // 如果反序列化失败，跳过处理
+                    break;
                 }
                 catch (ProtoException ex) when (ex.InnerException is OverflowException)
                 {
-                    // 捕获ProtoException内部的溢出异常，尝试使用容错方式解析
-                    msgBody = ParseNotifyMessageBodyWithFallback(proto.AsSpan());
+                    // 捕获ProtoException内部的溢出异常
+                    break;
                 }
 
                 if (msgBody == null) break;
@@ -241,13 +241,13 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 }
                 catch (OverflowException)
                 {
-                    // 如果反序列化失败，尝试使用容错方式解析
-                    recall = ParseNotifyMessageBodyWithFallback(proto.AsSpan());
+                    // 如果反序列化失败，跳过处理
+                    break;
                 }
                 catch (ProtoException ex) when (ex.InnerException is OverflowException)
                 {
-                    // 捕获ProtoException内部的溢出异常，尝试使用容错方式解析
-                    recall = ParseNotifyMessageBodyWithFallback(proto.AsSpan());
+                    // 捕获ProtoException内部的溢出异常
+                    break;
                 }
                 
                 if (recall?.Recall?.RecallMessages is not { } messages || messages.Count == 0) break;
@@ -311,13 +311,13 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 }
                 catch (OverflowException)
                 {
-                    // 如果反序列化失败，尝试使用容错方式解析
-                    greytip = ParseNotifyMessageBodyWithFallback(proto.AsSpan());
+                    // 如果反序列化失败，跳过处理
+                    break;
                 }
                 catch (ProtoException ex) when (ex.InnerException is OverflowException)
                 {
-                    // 捕获ProtoException内部的溢出异常，尝试使用容错方式解析
-                    greytip = ParseNotifyMessageBodyWithFallback(proto.AsSpan());
+                    // 捕获ProtoException内部的溢出异常
+                    break;
                 }
                 
                 if (greytip == null) break;
@@ -358,13 +358,13 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 }
                 catch (OverflowException)
                 {
-                    // 如果反序列化失败，尝试使用容错方式解析
-                    greyTip = ParseNotifyMessageBodyWithFallback(proto.AsSpan());
+                    // 如果反序列化失败，跳过处理
+                    break;
                 }
                 catch (ProtoException ex) when (ex.InnerException is OverflowException)
                 {
-                    // 捕获ProtoException内部的溢出异常，尝试使用容错方式解析
-                    greyTip = ParseNotifyMessageBodyWithFallback(proto.AsSpan());
+                    // 捕获ProtoException内部的溢出异常
+                    break;
                 }
                 
                 if (greyTip?.GeneralGrayTip?.MsgTemplParam == null) break;
@@ -397,123 +397,6 @@ internal class PushMessageService : BaseService<PushMessageEvent>
             {
                 break;
             }
-        }
-    }
-
-    // 容错解析NotifyMessageBody的方法
-    private static NotifyMessageBody? ParseNotifyMessageBodyWithFallback(ReadOnlySpan<byte> data)
-    {
-        try
-        {
-            var msgBody = new NotifyMessageBody();
-            
-            // 使用MemoryStream包装数据以适配ProtoReader
-            using var stream = new MemoryStream(data.ToArray());
-            using var reader = ProtoReader.Create(stream, null, null);
-            int field;
-            while ((field = reader.ReadFieldHeader()) > 0)
-            {
-                switch (field)
-                {
-                    case 1:
-                        msgBody.Type = reader.ReadUInt32();
-                        break;
-                    case 4:
-                        msgBody.GroupUin = reader.ReadUInt32();
-                        break;
-                    case 5:
-                        {
-                            var length = (int)reader.ReadUInt32();
-                            var buffer = reader.ReadBytes(length);
-                            msgBody.EventParam = buffer;
-                            break;
-                        }
-                    case 13:
-                        msgBody.Field13 = reader.ReadUInt32();
-                        break;
-                    case 21:
-                        msgBody.OperatorUid = reader.ReadString();
-                        break;
-                    case 37:
-                        msgBody.MsgSequence = reader.ReadUInt32();
-                        break;
-                    case 39:
-                        msgBody.Field39 = reader.ReadUInt32();
-                        break;
-                    case 50:
-                        msgBody.TipsSeqId = reader.ReadUInt64();
-                        break;
-                    // 跳过可能导致溢出的复杂嵌套对象
-                    case 11:
-                    case 26:
-                    case 33:
-                    case 40:
-                    case 44:
-                        try
-                        {
-                            // 尝试正常解析这些字段
-                            switch (field)
-                            {
-                                case 11:
-                                    {
-                                        var length = (int)reader.ReadUInt32();
-                                        var buffer = reader.ReadBytes(length);
-                                        msgBody.Recall = Serializer.Deserialize<GroupRecall>(buffer.AsSpan());
-                                        break;
-                                    }
-                                case 26:
-                                    {
-                                        var length = (int)reader.ReadUInt32();
-                                        var buffer = reader.ReadBytes(length);
-                                        msgBody.GeneralGrayTip = Serializer.Deserialize<GeneralGrayTipInfo>(buffer.AsSpan());
-                                        break;
-                                    }
-                                case 33:
-                                    {
-                                        var length = (int)reader.ReadUInt32();
-                                        var buffer = reader.ReadBytes(length);
-                                        msgBody.EssenceMessage = Serializer.Deserialize<EssenceMessage>(buffer.AsSpan());
-                                        break;
-                                    }
-                                case 40:
-                                    {
-                                        var length = (int)reader.ReadUInt32();
-                                        var buffer = reader.ReadBytes(length);
-                                        msgBody.GroupRecallPoke = Serializer.Deserialize<GroupRecallPoke>(buffer.AsSpan());
-                                        break;
-                                    }
-                                case 44:
-                                    {
-                                        var length = (int)reader.ReadUInt32();
-                                        var buffer = reader.ReadBytes(length);
-                                        msgBody.Reaction = Serializer.Deserialize<GroupReactionData0>(buffer.AsSpan());
-                                        break;
-                                    }
-                            }
-                        }
-                        catch (OverflowException)
-                        {
-                            // 如果解析失败，跳过该字段
-                            reader.SkipField();
-                        }
-                        catch (ProtoException ex) when (ex.InnerException is OverflowException)
-                        {
-                            // 如果解析失败，跳过该字段
-                            reader.SkipField();
-                        }
-                        break;
-                    default:
-                        reader.SkipField();
-                        break;
-                }
-            }
-            
-            return msgBody;
-        }
-        catch
-        {
-            // 如果容错解析也失败，返回null
-            return null;
         }
     }
 
