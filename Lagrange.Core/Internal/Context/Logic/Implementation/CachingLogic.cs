@@ -81,12 +81,12 @@ internal class CachingLogic : LogicBase
         return _uinToUid.GetValueOrDefault(friendUin);
     }
 
-    public async Task<uint?> ResolveUin(uint? groupUin, string friendUid, bool force = false)
+    public async Task<uint?> ResolveUin(ulong? groupUin, string friendUid, bool force = false)
     {
         if (_uinToUid.Count == 0) await ResolveFriendsUidAndFriendGroups();
         if (groupUin == null) return _uinToUid.FirstOrDefault(x => x.Value == friendUid).Key;
 
-        await CacheUid(groupUin.Value, force);
+        await CacheUid((uint)groupUin.Value, force);
 
         return _uinToUid.FirstOrDefault(x => x.Value == friendUid).Key;
     }

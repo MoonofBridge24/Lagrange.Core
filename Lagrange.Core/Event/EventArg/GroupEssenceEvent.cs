@@ -2,7 +2,7 @@ namespace Lagrange.Core.Event.EventArg;
 
 public class GroupEssenceEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
     public uint Sequence { get; }
 
@@ -14,7 +14,7 @@ public class GroupEssenceEvent : EventBase
 
     public uint OperatorUin { get; }
 
-    public GroupEssenceEvent(uint groupUin, uint sequence,uint random, uint setFlag, uint fromUin, uint operatorUin)
+    public GroupEssenceEvent(ulong groupUin, uint sequence,uint random, uint setFlag, uint fromUin, uint operatorUin)
     {
         GroupUin = groupUin;
         Sequence = sequence;

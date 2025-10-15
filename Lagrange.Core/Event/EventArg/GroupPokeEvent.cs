@@ -2,7 +2,7 @@ namespace Lagrange.Core.Event.EventArg;
 
 public class GroupPokeEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
     public uint OperatorUin { get; }
 
@@ -20,7 +20,7 @@ public class GroupPokeEvent : EventBase
 
     public ulong TipsSeqId { get; }
 
-    public GroupPokeEvent(uint groupUin, uint operatorUin, uint targetUin, string action, string suffix, string actionImgUrl, ulong messageSequence, ulong messageTime, ulong tipsSeqId)
+    public GroupPokeEvent(ulong groupUin, uint operatorUin, uint targetUin, string action, string suffix, string actionImgUrl, ulong messageSequence, ulong messageTime, ulong tipsSeqId)
     {
         GroupUin = groupUin;
         OperatorUin = operatorUin;

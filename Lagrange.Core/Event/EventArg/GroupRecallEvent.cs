@@ -2,7 +2,7 @@ namespace Lagrange.Core.Event.EventArg;
 
 public class GroupRecallEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
     public uint AuthorUin { get; }
 
@@ -16,7 +16,7 @@ public class GroupRecallEvent : EventBase
 
     public string Tip { get; }
 
-    public GroupRecallEvent(uint groupUin, uint authorUin, uint operatorUin, uint sequence, uint time, uint random, string tip)
+    public GroupRecallEvent(ulong groupUin, uint authorUin, uint operatorUin, uint sequence, uint time, uint random, string tip)
     {
         GroupUin = groupUin;
         AuthorUin = authorUin;

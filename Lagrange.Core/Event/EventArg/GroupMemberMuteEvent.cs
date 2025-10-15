@@ -2,7 +2,7 @@ namespace Lagrange.Core.Event.EventArg;
 
 public class GroupMemberMuteEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
     
     public uint TargetUin { get; }
 
@@ -10,7 +10,7 @@ public class GroupMemberMuteEvent : EventBase
     
     public uint Duration { get; }
     
-    public GroupMemberMuteEvent(uint groupUin, uint targetUin, uint? operatorUin, uint duration)
+    public GroupMemberMuteEvent(ulong groupUin, uint targetUin, uint? operatorUin, uint duration)
     {
         GroupUin = groupUin;
         TargetUin = targetUin;

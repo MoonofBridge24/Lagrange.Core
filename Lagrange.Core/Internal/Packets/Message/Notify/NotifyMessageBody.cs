@@ -12,7 +12,7 @@ internal class NotifyMessageBody
 {
     [ProtoMember(1)] public uint Type { get; set; }
 
-    [ProtoMember(4)] public uint GroupUin { get; set; }
+    [ProtoMember(4)] public ulong GroupUin { get; set; }
 
     [ProtoMember(5)] public byte[]? EventParam { get; set; }
 

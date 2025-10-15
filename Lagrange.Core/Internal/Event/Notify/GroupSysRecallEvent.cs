@@ -2,7 +2,7 @@ namespace Lagrange.Core.Internal.Event.Notify;
 
 internal class GroupSysRecallEvent : ProtocolEvent
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
     public string AuthorUid { get; }
 
@@ -16,7 +16,7 @@ internal class GroupSysRecallEvent : ProtocolEvent
 
     public string Tip { get; }
 
-    private GroupSysRecallEvent(uint groupUin, string authorUid, string? operatorUid, uint sequence, uint time, uint random, string tip) : base(0)
+    private GroupSysRecallEvent(ulong groupUin, string authorUid, string? operatorUid, uint sequence, uint time, uint random, string tip) : base(0)
     {
         GroupUin = groupUin;
         AuthorUid = authorUid;
@@ -27,6 +27,6 @@ internal class GroupSysRecallEvent : ProtocolEvent
         Tip = tip;
     }
 
-    public static GroupSysRecallEvent Result(uint groupUin, string authorUid, string? operatorUid, uint sequence, uint time, uint random, string tip)
+    public static GroupSysRecallEvent Result(ulong groupUin, string authorUid, string? operatorUid, uint sequence, uint time, uint random, string tip)
         => new(groupUin, authorUid, operatorUid, sequence, time, random, tip);
 }

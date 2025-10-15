@@ -2,13 +2,13 @@ namespace Lagrange.Core.Event.EventArg;
 
 public class GroupMemberEnterEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
     public uint GroupMemberUin { get; }
 
     public uint StyleId { get; }
 
-    internal GroupMemberEnterEvent(uint groupUin, uint groupMemberUin, uint styleId)
+    internal GroupMemberEnterEvent(ulong groupUin, uint groupMemberUin, uint styleId)
     {
         GroupUin = groupUin;
         GroupMemberUin = groupMemberUin;

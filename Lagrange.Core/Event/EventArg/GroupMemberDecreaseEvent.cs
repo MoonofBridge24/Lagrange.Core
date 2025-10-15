@@ -2,15 +2,15 @@ namespace Lagrange.Core.Event.EventArg;
 
 public class GroupMemberDecreaseEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
-    public uint MemberUin { get; }
+    public ulong MemberUin { get; }
 
-    public uint? OperatorUin { get; }
+    public ulong? OperatorUin { get; }
 
     public EventType Type { get; }
 
-    public GroupMemberDecreaseEvent(uint groupUin, uint memberUin, uint? operatorUin, uint type)
+    public GroupMemberDecreaseEvent(ulong groupUin, ulong memberUin, ulong? operatorUin, ulong type)
     {
         GroupUin = groupUin;
         MemberUin = memberUin;
@@ -20,7 +20,7 @@ public class GroupMemberDecreaseEvent : EventBase
         EventMessage = $"{nameof(GroupMemberDecreaseEvent)}: {GroupUin} | {MemberUin} | {OperatorUin} | {Type}";
     }
 
-    public enum EventType : uint
+    public enum EventType : ulong
     {
         KickMe = 3,
         Disband = 129,

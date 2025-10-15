@@ -2,15 +2,15 @@ namespace Lagrange.Core.Event.EventArg;
 
 public class GroupMemberIncreaseEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
     
-    public uint MemberUin { get; }
+    public ulong MemberUin { get; }
     
-    public uint? InvitorUin { get; }
+    public ulong? InvitorUin { get; }
     
     public EventType Type { get; }
     
-    public GroupMemberIncreaseEvent(uint groupUin, uint memberUin, uint? invitorUin, uint type)
+    public GroupMemberIncreaseEvent(ulong groupUin, ulong memberUin, ulong? invitorUin, ulong type)
     {
         GroupUin = groupUin;
         MemberUin = memberUin;
@@ -20,7 +20,7 @@ public class GroupMemberIncreaseEvent : EventBase
         EventMessage = $"{nameof(GroupMemberIncreaseEvent)}: {GroupUin} | {MemberUin} | {InvitorUin} | {Type}";
     }
 
-    public enum EventType : uint
+    public enum EventType : ulong
     {
         Approve = 130,
         Invite = 131

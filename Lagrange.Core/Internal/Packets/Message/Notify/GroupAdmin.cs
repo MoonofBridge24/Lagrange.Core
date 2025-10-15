@@ -7,9 +7,9 @@ namespace Lagrange.Core.Internal.Packets.Message.Notify;
 [ProtoContract]
 internal class GroupAdmin
 {
-    [ProtoMember(1)] public uint GroupUin { get; set; }
+    [ProtoMember(1)] public ulong GroupUin { get; set; }
     
-    [ProtoMember(2)] public uint Flag { get; set; }
+    [ProtoMember(2)] public ulong Flag { get; set; }
     
     [ProtoMember(3)] public bool IsPromote { get; set; }
     

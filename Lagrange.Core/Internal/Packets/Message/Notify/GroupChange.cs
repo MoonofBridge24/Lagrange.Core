@@ -7,17 +7,17 @@ namespace Lagrange.Core.Internal.Packets.Message.Notify;
 [ProtoContract]
 internal class GroupChange
 {
-    [ProtoMember(1)] public uint GroupUin { get; set; }
+    [ProtoMember(1)] public ulong GroupUin { get; set; }
 
-    [ProtoMember(2)] public uint Flag { get; set; }
+    [ProtoMember(2)] public ulong Flag { get; set; }
 
     [ProtoMember(3)] public string MemberUid { get; set; }
 
-    [ProtoMember(4)] public uint DecreaseType { get; set; } // 131 Kick 130 Exit
+    [ProtoMember(4)] public ulong DecreaseType { get; set; } // 131 Kick 130 Exit
 
     [ProtoMember(5)] public byte[]? Operator { get; set; }
 
-    [ProtoMember(6)] public uint IncreaseType { get; set; }
+    [ProtoMember(6)] public ulong IncreaseType { get; set; }
 
     [ProtoMember(7)] public byte[]? Field7 { get; set; }
 }
@@ -33,11 +33,11 @@ internal class OperatorField1
 {
     [ProtoMember(1)] public string? Uid { get; set; }
 
-    [ProtoMember(2)] public uint Field2 { get; set; }
+    [ProtoMember(2)] public ulong Field2 { get; set; }
 
     [ProtoMember(3)] public byte[]? Field3 { get; set; }
 
-    [ProtoMember(4)] public uint Field4 { get; set; }
+    [ProtoMember(4)] public ulong Field4 { get; set; }
 
     [ProtoMember(5)] public byte[]? Field5 { get; set; }
 }

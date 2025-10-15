@@ -1,12 +1,12 @@
-﻿namespace Lagrange.Core.Event.EventArg;
+namespace Lagrange.Core.Event.EventArg;
 
 public class GroupNameChangeEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
     public string Name { get; }
 
-    public GroupNameChangeEvent(uint groupUin, string name)
+    public GroupNameChangeEvent(ulong groupUin, string name)
     {
         GroupUin = groupUin;
         Name = name;

@@ -4,13 +4,13 @@ internal class GroupSysRequestJoinEvent : ProtocolEvent
 {
     public string TargetUid { get; }
     
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
-    private GroupSysRequestJoinEvent(uint groupUin, string targetUid) : base(0)
+    private GroupSysRequestJoinEvent(ulong groupUin, string targetUid) : base(0)
     {
         TargetUid = targetUid;
         GroupUin = groupUin;
     }
 
-    public static GroupSysRequestJoinEvent Result(uint groupUin, string targetUid) => new(groupUin, targetUid);
+    public static GroupSysRequestJoinEvent Result(ulong groupUin, string targetUid) => new(groupUin, targetUid);
 }

@@ -29,10 +29,6 @@ namespace Lagrange.Core.Internal.Context.Logic.Implementation;
 [EventSubscribe(typeof(GroupSysAdminEvent))]
 [EventSubscribe(typeof(GroupSysIncreaseEvent))]
 [EventSubscribe(typeof(GroupSysDecreaseEvent))]
-[EventSubscribe(typeof(GroupSysMuteEvent))]
-[EventSubscribe(typeof(GroupSysMemberMuteEvent))]
-[EventSubscribe(typeof(GroupSysRecallEvent))]
-[EventSubscribe(typeof(GroupSysRequestJoinEvent))]
 [EventSubscribe(typeof(GroupSysRequestInvitationEvent))]
 [EventSubscribe(typeof(GroupSysEssenceEvent))]
 [EventSubscribe(typeof(GroupSysPokeEvent))]
@@ -127,15 +123,15 @@ internal class MessagingLogic : LogicBase
             }
             case GroupSysInviteEvent invite:
             {
-                uint invitorUin = await Collection.Business.CachingLogic.ResolveUin(null, invite.InvitorUid) ?? 0;
-                var inviteArgs = new GroupInvitationEvent(invite.GroupUin, invitorUin);
+                uint invitorUin = await Collection.Business.CachingLogic.ResolveUin(invite.GroupUin, invite.InvitorUid) ?? 0;
+                var inviteArgs = new GroupInvitationEvent((ulong)invite.GroupUin, (ulong)invitorUin);
                 Collection.Invoker.PostEvent(inviteArgs);
                 break;
             }
             case GroupSysAdminEvent admin:
             {
                 uint adminUin = await Collection.Business.CachingLogic.ResolveUin(admin.GroupUin, admin.Uid) ?? 0;
-                var adminArgs = new GroupAdminChangedEvent(admin.GroupUin, adminUin, admin.IsPromoted);
+                var adminArgs = new GroupAdminChangedEvent((ulong)admin.GroupUin, (ulong)adminUin, admin.IsPromoted);
                 Collection.Invoker.PostEvent(adminArgs);
                 break;
             }
@@ -144,7 +140,7 @@ internal class MessagingLogic : LogicBase
                 uint memberUin = await Collection.Business.CachingLogic.ResolveUin(increase.GroupUin, increase.MemberUid, true) ?? 0;
                 uint? invitorUin = null;
                 if (increase.InvitorUid != null) invitorUin = await Collection.Business.CachingLogic.ResolveUin(increase.GroupUin, increase.InvitorUid);
-                var increaseArgs = new GroupMemberIncreaseEvent(increase.GroupUin, memberUin, invitorUin, increase.Type);
+                var increaseArgs = new GroupMemberIncreaseEvent((ulong)increase.GroupUin, (ulong)memberUin, (ulong?)invitorUin, (ulong)increase.Type);
                 Collection.Invoker.PostEvent(increaseArgs);
                 break;
             }
@@ -153,7 +149,7 @@ internal class MessagingLogic : LogicBase
                 uint memberUin = await Collection.Business.CachingLogic.ResolveUin(decrease.GroupUin, decrease.MemberUid) ?? 0;
                 uint? operatorUin = null;
                 if (decrease.OperatorUid != null) operatorUin = await Collection.Business.CachingLogic.ResolveUin(decrease.GroupUin, decrease.OperatorUid);
-                var decreaseArgs = new GroupMemberDecreaseEvent(decrease.GroupUin, memberUin, operatorUin, decrease.Type);
+                var decreaseArgs = new GroupMemberDecreaseEvent((ulong)decrease.GroupUin, (ulong)memberUin, (ulong?)operatorUin, (ulong)decrease.Type);
                 Collection.Invoker.PostEvent(decreaseArgs);
                 break;
             }
@@ -181,9 +177,9 @@ internal class MessagingLogic : LogicBase
             }
             case GroupSysReactionEvent reaction:
             {
-                uint operatorUin = await Collection.Business.CachingLogic.ResolveUin((uint)reaction.TargetGroupUin, reaction.OperatorUid) ?? 0;
-                var pokeArgs = new GroupReactionEvent((ulong)reaction.TargetGroupUin, (ulong)reaction.TargetSequence, (ulong)operatorUin, reaction.IsAdd, reaction.Code, (ulong)reaction.Count);
-                Collection.Invoker.PostEvent(pokeArgs);
+                uint operatorUin = await Collection.Business.CachingLogic.ResolveUin(reaction.TargetGroupUin, reaction.OperatorUid) ?? 0;
+                var reactionArgs = new GroupReactionEvent((ulong)reaction.TargetGroupUin, reaction.TargetSequence, operatorUin, reaction.IsAdd, reaction.Code, reaction.Count);
+                Collection.Invoker.PostEvent(reactionArgs);
                 break;
             }
             case GroupSysNameChangeEvent nameChange:
@@ -232,24 +228,9 @@ internal class MessagingLogic : LogicBase
             }
             case GroupSysRequestJoinEvent join:
             {
-                var fetchUidEvent = FetchUserInfoEvent.Create(join.TargetUid);
-                var results = await Collection.Business.SendEvent(fetchUidEvent);
-                uint targetUin = results.Count == 0 ? 0 : ((FetchUserInfoEvent)results[0]).UserInfo.Uin;
-
-                var joinArgs = new GroupJoinRequestEvent(join.GroupUin, targetUin);
+                uint targetUin = await Collection.Business.CachingLogic.ResolveUin(join.GroupUin, join.TargetUid, true) ?? 0;
+                var joinArgs = new GroupJoinRequestEvent((ulong)join.GroupUin, (ulong)targetUin);
                 Collection.Invoker.PostEvent(joinArgs);
-                break;
-            }
-            case GroupSysRequestInvitationEvent invitation:
-            {
-                uint invitorUin = await Collection.Business.CachingLogic.ResolveUin(invitation.GroupUin, invitation.InvitorUid) ?? 0;
-
-                var fetchUidEvent = FetchUserInfoEvent.Create(invitation.TargetUid);
-                var results = await Collection.Business.SendEvent(fetchUidEvent);
-                uint targetUin = results.Count == 0 ? 0 : ((FetchUserInfoEvent)results[0]).UserInfo.Uin;
-
-                var invitationArgs = new GroupInvitationRequestEvent(invitation.GroupUin, targetUin, invitorUin);
-                Collection.Invoker.PostEvent(invitationArgs);
                 break;
             }
             case FriendSysRecallEvent recall:
@@ -275,6 +256,7 @@ internal class MessagingLogic : LogicBase
                 Collection.Invoker.PostEvent(pokeArgs);
                 break;
             }
+            // Removed the special handling of GroupSysRequestInvitationEvent in default case since it's now handled as a proper case
             case LoginNotifyEvent login:
             {
                 var deviceArgs = new DeviceLoginEvent(login.IsLogin, login.AppId, login.Tag, login.Message);
@@ -336,6 +318,16 @@ internal class MessagingLogic : LogicBase
                 Collection.Invoker.PostEvent(@event);
                 break;
             }
+            default:
+                if (e.GetType() == typeof(GroupSysRequestInvitationEvent))
+                {
+                    var invitation = (GroupSysRequestInvitationEvent)(object)e;
+                    uint invitorUin = await Collection.Business.CachingLogic.ResolveUin(invitation.GroupUin, invitation.InvitorUid) ?? 0;
+                    uint targetUin = await Collection.Business.CachingLogic.ResolveUin(invitation.GroupUin, invitation.TargetUid, true) ?? 0;
+                    var invitationArgs = new GroupInvitationRequestEvent((ulong)invitation.GroupUin, (ulong)targetUin, (ulong)invitorUin);
+                    Collection.Invoker.PostEvent(invitationArgs);
+                }
+                break;
         }
     }
 

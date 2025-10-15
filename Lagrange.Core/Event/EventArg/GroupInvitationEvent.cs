@@ -2,13 +2,13 @@ namespace Lagrange.Core.Event.EventArg;
 
 public class GroupInvitationEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
-    public uint InvitorUin { get; }
+    public ulong InvitorUin { get; }
 
     public ulong? Sequence { get; }
 
-    internal GroupInvitationEvent(uint groupUin, uint invitorUin)
+    internal GroupInvitationEvent(ulong groupUin, ulong invitorUin)
     {
         GroupUin = groupUin;
         InvitorUin = invitorUin;
@@ -16,7 +16,7 @@ public class GroupInvitationEvent : EventBase
         EventMessage = $"[{nameof(GroupInvitationEvent)}]: {GroupUin} from {InvitorUin}";
     }
 
-    internal GroupInvitationEvent(uint groupUin, uint invitorUin, ulong? sequence) : this(groupUin, invitorUin)
+    internal GroupInvitationEvent(ulong groupUin, ulong invitorUin, ulong? sequence) : this(groupUin, invitorUin)
     {
         Sequence = sequence;
     }

@@ -13,6 +13,67 @@ using ProtoBuf;
 
 namespace Lagrange.Core.Internal.Service.Message;
 
+/// <summary>
+/// 消息包类型枚举
+/// </summary>
+internal enum PkgType
+{
+    PrivateMessage = 166,
+    GroupMessage = 82,
+    TempMessage = 141,
+
+    Event0x210 = 528,  // friend related event
+    Event0x2DC = 732,  // group related event
+
+    PrivateRecordMessage = 208,
+    PrivateFileMessage = 529,
+
+    GroupRequestInvitationNotice = 525, // from group member invitation
+    GroupRequestJoinNotice = 84, // directly entered
+    GroupInviteNotice = 87,  // the bot self is being invited
+    GroupAdminChangedNotice = 44,  // admin change, both on and off
+    GroupMemberIncreaseNotice = 33,
+    GroupMemberDecreaseNotice = 34,
+}
+
+/// <summary>
+/// 0x2DC事件子类型
+/// </summary>
+internal enum Event0x2DCSubType
+{
+    GroupMuteNotice = 12,
+    SubType16 = 16,
+    GroupRecallNotice = 17,
+    GroupGreyTipNotice21 = 21,
+    GroupGreyTipNotice20 = 20,
+}
+
+/// <summary>
+/// 0x2DC事件子类型16的字段13类型
+/// </summary>
+internal enum Event0x2DCSubType16Field13
+{
+    GroupMemberSpecialTitleNotice = 6,
+    GroupNameChangeNotice = 12,
+    GroupTodoNotice = 23,
+    GroupReactionNotice = 35,
+}
+
+/// <summary>
+/// 0x210事件子类型
+/// </summary>
+internal enum Event0x210SubType
+{
+    FriendRequestNotice = 35,
+    GroupMemberEnterNotice = 38,
+    FriendDeleteOrPinChangedNotice = 39,
+    FriendRecallNotice = 138,
+    ServicePinChanged = 199, // e.g: My computer | QQ Wallet | ...
+    FriendPokeNotice = 290,
+    GroupKickNotice = 212,
+    FriendRecallPoke = 321,
+}
+
 [EventSubscribe(typeof(PushMessageEvent))]
 [Service("trpc.msg.olpush.OlPushService.MsgPush")]
 internal class PushMessageService : BaseService<PushMessageEvent>
@@ -89,7 +150,7 @@ internal class PushMessageService : BaseService<PushMessageEvent>
             case PkgType.GroupMemberIncreaseNotice when message.Message.Body?.MsgContent is { } content:
             {
                 var increase = Serializer.Deserialize<GroupChange>(content.AsSpan());
-                var increaseEvent = GroupSysIncreaseEvent.Result(increase.GroupUin, increase.MemberUid, Encoding.UTF8.GetString(increase.Operator.AsSpan()), increase.DecreaseType);
+                var increaseEvent = GroupSysIncreaseEvent.Result(increase.GroupUin, increase.MemberUid, Encoding.UTF8.GetString(increase.Operator.AsSpan()), increase.IncreaseType);
                 extraEvents.Add(increaseEvent);
                 break;
             }
@@ -104,7 +165,8 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 }
                 else
                 {
-                    decreaseEvent = GroupSysDecreaseEvent.Result(decrease.GroupUin, decrease.MemberUid, Encoding.UTF8.GetString(decrease.Operator.AsSpan()), decrease.DecreaseType);
+                    string operatorUid = Encoding.UTF8.GetString(decrease.Operator.AsSpan());
+                    decreaseEvent = GroupSysDecreaseEvent.Result(decrease.GroupUin, decrease.MemberUid, operatorUid, decrease.DecreaseType);
                 }
                 extraEvents.Add(decreaseEvent);
                 break;
@@ -154,7 +216,7 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                     }
                     case Event0x2DCSubType16Field13.GroupTodoNotice:
                     {
-                        extraEvents.Add(GroupSysTodoEvent.Result(msgBody.GroupUin, msgBody.OperatorUid));
+                        extraEvents.Add(GroupSysTodoEvent.Result((ulong)msgBody.GroupUin, msgBody.OperatorUid));
                         break;
                     }
                     case Event0x2DCSubType16Field13.GroupReactionNotice:
@@ -377,54 +439,5 @@ internal class PushMessageService : BaseService<PushMessageEvent>
                 break;
             }
         }
-    }
-
-    private enum PkgType
-    {
-        PrivateMessage = 166,
-        GroupMessage = 82,
-        TempMessage = 141,
-
-        Event0x210 = 528,  // friend related event
-        Event0x2DC = 732,  // group related event
-
-        PrivateRecordMessage = 208,
-        PrivateFileMessage = 529,
-
-        GroupRequestInvitationNotice = 525, // from group member invitation
-        GroupRequestJoinNotice = 84, // directly entered
-        GroupInviteNotice = 87,  // the bot self is being invited
-        GroupAdminChangedNotice = 44,  // admin change, both on and off
-        GroupMemberIncreaseNotice = 33,
-        GroupMemberDecreaseNotice = 34,
-    }
-
-    private enum Event0x2DCSubType
-    {
-        GroupMuteNotice = 12,
-        SubType16 = 16,
-        GroupRecallNotice = 17,
-        GroupGreyTipNotice21 = 21,
-        GroupGreyTipNotice20 = 20,
-    }
-
-    private enum Event0x2DCSubType16Field13
-    {
-        GroupMemberSpecialTitleNotice = 6,
-        GroupNameChangeNotice = 12,
-        GroupTodoNotice = 23,
-        GroupReactionNotice = 35,
-    }
-
-    private enum Event0x210SubType
-    {
-        FriendRequestNotice = 35,
-        GroupMemberEnterNotice = 38,
-        FriendDeleteOrPinChangedNotice = 39,
-        FriendRecallNotice = 138,
-        ServicePinChanged = 199, // e.g: My computer | QQ Wallet | ...
-        FriendPokeNotice = 290,
-        GroupKickNotice = 212,
-        FriendRecallPoke = 321,
     }
 }

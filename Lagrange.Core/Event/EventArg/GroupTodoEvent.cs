@@ -2,11 +2,11 @@ namespace Lagrange.Core.Event.EventArg;
 
 public class GroupTodoEvent : EventBase
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
 
     public uint OperatorUin { get; }
 
-    public GroupTodoEvent(uint groupUin, uint operatorUin)
+    public GroupTodoEvent(ulong groupUin, uint operatorUin)
     {
         GroupUin = groupUin;
         OperatorUin = operatorUin;

@@ -2,15 +2,15 @@ namespace Lagrange.Core.Internal.Event.Notify;
 
 internal class GroupSysDecreaseEvent : ProtocolEvent
 {
-    public uint GroupUin { get; }
+    public ulong GroupUin { get; }
     
     public string MemberUid { get; }
     
     public string? OperatorUid { get; }
     
-    public uint Type { get; }
+    public ulong Type { get; }
     
-    private GroupSysDecreaseEvent(uint groupUin, string memberUid, string? operatorUid, uint type) : base(0)
+    private GroupSysDecreaseEvent(ulong groupUin, string memberUid, string? operatorUid, ulong type) : base(0)
     {
         GroupUin = groupUin;
         MemberUid = memberUid;
@@ -18,6 +18,6 @@ internal class GroupSysDecreaseEvent : ProtocolEvent
         Type = type;
     }
 
-    public static GroupSysDecreaseEvent Result(uint groupUin, string uid, string? operatorUid, uint type) =>
+    public static GroupSysDecreaseEvent Result(ulong groupUin, string uid, string? operatorUid, ulong type) =>
         new(groupUin, uid, operatorUid, type);
 }
