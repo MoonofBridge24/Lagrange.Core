@@ -248,12 +248,12 @@ public sealed class NotifyService(BotContext bot, ILogger<NotifyService> logger,
 
             await service.SendJsonAsync(new OneBotGroupReaction(
                 bot.BotUin,
-                @event.TargetGroupUin,
+                (uint)@event.TargetGroupUin,
                 id.Value,
-                @event.OperatorUin,
+                (uint)@event.OperatorUin,
                 @event.IsAdd ? "add" : "remove",
                 @event.Code,
-                @event.Count
+                (uint)@event.Count
             ));
         };
 

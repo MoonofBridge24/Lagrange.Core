@@ -181,8 +181,8 @@ internal class MessagingLogic : LogicBase
             }
             case GroupSysReactionEvent reaction:
             {
-                uint operatorUin = await Collection.Business.CachingLogic.ResolveUin(reaction.TargetGroupUin, reaction.OperatorUid) ?? 0;
-                var pokeArgs = new GroupReactionEvent(reaction.TargetGroupUin, reaction.TargetSequence, operatorUin, reaction.IsAdd, reaction.Code, reaction.Count);
+                uint operatorUin = await Collection.Business.CachingLogic.ResolveUin((uint)reaction.TargetGroupUin, reaction.OperatorUid) ?? 0;
+                var pokeArgs = new GroupReactionEvent((ulong)reaction.TargetGroupUin, (ulong)reaction.TargetSequence, (ulong)operatorUin, reaction.IsAdd, reaction.Code, (ulong)reaction.Count);
                 Collection.Invoker.PostEvent(pokeArgs);
                 break;
             }
